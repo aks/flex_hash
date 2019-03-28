@@ -1,0 +1,15 @@
+---
+AllCops:
+  TargetRubyVersion: 2.4
+Metrics/LineLength: 
+  Max: 160
+Metrics/BlockLength:
+  Enabled: false
+Metrics/AbcSize:
+  Enabled: false
+Metrics/CyclomaticComplexity:
+  Enabled: false
+Metrics/ClassLength:
+  Enabled: false
+Style/StringLiterals:
+  Enabled: false
