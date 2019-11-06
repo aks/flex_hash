@@ -2,6 +2,7 @@
 
 require 'flex_hash/version'
 require 'awesome_print'
+require_relative 'seen_mixin'
 
 # FlexHash is a subclass of a Hash, with the added features of:
 # - automatically initializing nested hashes
@@ -54,28 +55,31 @@ require 'awesome_print'
 #
 # 5. The array indexes cause _true_ nesting<sup>[1]</sup>.
 #
-# 6. Because the _default_ initialization is a nested `FlexHash` instance, this allows for
-#    _chained indexing_. For example: `ah[key1][key2][key3] = value`.  This works because the
-#    first index expression `ah[key1]` returns a `FlexHash` instance as its value, which is
-#    then indexed with `[key2]`, which returns another `FlexHash` instance, which is then
-#    indexed with `[key3]`, which returns its automatically-initialized `FlexHash` index.
+# 6. Because the _default_ initialization is a nested `FlexHash` instance, this
+#    allows for _chained indexing_. For example: `ah[key1][key2][key3] =
+#    value`.  This works because the first index expression `ah[key1]` returns
+#    a `FlexHash` instance as its value, which is then indexed with `[key2]`,
+#    which returns another `FlexHash` instance, which is then indexed with
+#    `[key3]`, which returns its automatically-initialized `FlexHash` index.
 #
-# 7. The "downside" of auto-initializtion is that indexing with unknown keys does not result
-#    in a `nil` _(as with regular hashes)_; instead it returns the new `FlexHash` instance that is
-#    associated with the new key.
+# 7. The "downside" of auto-initializtion is that indexing with unknown keys does
+#    not result in a `nil` _(as with regular hashes)_; instead it returns the
+#    new `FlexHash` instance that is associated with the new key.
 #
-# 8. Keys can be tested without causing auto-initializing by using the usual Hash methods:
-#    `.key?` or `member?`
+# 8. Keys can be tested without causing auto-initializing by using the usual Hash
+#    methods: `.key?` or `member?`
 #
-# 9. Array indexes are flattened before iterating over them, so they can be provided either
-#    as a single argument, or as combinations of arrays and/or scalars.
+# 9. Array indexes are flattened before iterating over them, so they can be
+#    provided either as a single argument, or as combinations of arrays and/or
+#    scalars.
 #
 # 10. The `ah[array]` syntax above would fail if `ah` were a normal Hash.
 #
-# 11. The default behavior of initializing final values with FlexHash instances can be changed by
-#     explicitly setting `.default`; e.g.: `fh.default = nil`.
+# 11. The default behavior of initializing final values with FlexHash instances
+#     can be changed by explicitly setting `.default`; e.g.: `fh.default = nil`.
 #
-# 12. Intermediate new index keys are always initialized to FlexHash instances, unless mapped.
+# 12. Intermediate new index keys are always initialized to FlexHash instances,
+#     unless mapped.
 #
 # ### Array Indexing and Nested Hashes
 #
@@ -111,8 +115,8 @@ require 'awesome_print'
 #                                                  "c" => ...,
 #                                                  "d" => ... }
 #
-# [1]: In regard to nested array indexing, the value of `ah['some_file.xml']` is a `FlexHash`,
-#      which looks like this:
+# [1]: In regard to nested array indexing, the value of `ah['some_file.xml']`
+#      is a `FlexHash`, which looks like this:
 #
 # ```ruby
 #   ah['some_file.xml'] => {
@@ -133,8 +137,8 @@ require 'awesome_print'
 #
 # `keymap` is an optional hash mapping specific strings, symbols, or regexps to
 # a corresponding data type to be used with their index.  By default, all keys
-# not specifically mapped will have their associated values initialized to a new
-# `FlexHash` instance.
+# not specifically mapped will have their associated values initialized to a
+# new `FlexHash` instance.
 #
 # The keymap can map symbols, strings, or regexps to collection classes or
 # literals.  Example:
@@ -145,11 +149,12 @@ require 'awesome_print'
 #
 #     ah = FlexHash.new( :versions => [], /path/ => '')
 #
-# In the above example, keys of `:versions` will be initialized with an array, and any key
-# matching the regexp `/path/` will have their associated value initialized to the empty
-# string.
+# In the above example, keys of `:versions` will be initialized with an array,
+# and any key matching the regexp `/path/` will have their associated value
+# initialized to the empty string.
 #
-# Intermediate keys not explicitly mapped will have an associated `FlexHash.new` value.
+# Intermediate keys not explicitly mapped will have an associated
+# `FlexHash.new` value.
 #
 # ### Auto-Initialization and Array Indexing
 #
@@ -161,23 +166,24 @@ require 'awesome_print'
 # is no such key.  On normal hashes, in the case where the key did not exist,
 # the key will *not* added to the hash by just referencing it.
 #
-# With `FlexHash` objects, because of the auto-initialization, simply referencing
-# a new key will cause it to be added to the underly hash data associted with a new
-# `FlexHash` instance.
+# With `FlexHash` objects, because of the auto-initialization, simply
+# referencing a new key will cause it to be added to the underlying hash data
+# associated with a new `FlexHash` instance.
 #
 # In other words, this auto-initialization is what makes the code below possible:
 #
-#     ah = FlexHash.new; aj = FlexHash.new
+#     ah = FlexHash.new
+#     aj = FlexHash.new
 #     ah[:k1][:k2][:k3] = aj[:k1, :k2, :k3] = 'foo'
 #     ah[:k1]           == aj[:k1]
 #     ah[:k1][:k2]      == aj[:k1, :k2]
 #     ah[:k1][:k2][:k3] == aj[:k1, :k2, :k3]
 #
-# The index chain `ah[:k1][:k2][:k3]` works _only_ because of the auto-initialization
-# with FlexHash instances.
+# The index chain `ah[:k1][:k2][:k3]` works _only_ because of the
+# auto-initialization with FlexHash instances.
 #
-# With normal hashes, the above code would not work.  To make it work would require
-# something like this:
+# With normal hashes, the above code would not work.  To make it work would
+# require something like this:
 #
 #     ah ||= {}
 #     ah[:k1] ||= {}
@@ -192,7 +198,8 @@ require 'awesome_print'
 # ### Overriding the Default Initialization
 #
 # If it is undesireable to have new indexes auto-initialize to an `FlexHash`
-# value, then explicitly setting the `default` attribute to `nil` will prevent this.
+# value, then explicitly setting the `default` attribute to `nil` will prevent
+# this.
 #
 # The default of a `FlexHash` node can be overridden with:
 #
@@ -222,29 +229,35 @@ require 'awesome_print'
 #     > ah
 #     { :k1 => {} }
 #
+#
+# `FlexHash`:
+#
+# a hash which maps _keys_ _(as strings, symbols, or regexps)_ to literals or
+# classes.  The mapping keys are matched against new `FlexHash` index keys and
+# the associated value is used to automatically initialize the value.  When no
+# mapping exists, the default initialization value is a new instance of
+# `FlexHash`.
+#
+# Mappings are only needed when the default initialization of `FlexHash` is
+# incorrect.  For example, if a particular index key were to be used to collect
+# information in an _array_, then a mapping for that key name or a regexp
+# matching its string name would be needed.
+#
+# For example, if it were desired to have any keys with the string `list` in
+# the name be automatically mapped to an array, then the mapping would be:
+#
+#     /list/ => []
+#
+# @return [Hash, nil] hash of mappings, possibly empty or nil.
 class FlexHash < Hash
-  # a hash which maps _keys_ _(as strings, symbols, or regexps)_ to literals or classes.  The mapping
-  # keys are matched against new `FlexHash` index keys and the associated value is used to automatically
-  # initialize the value.  When no mapping exists, the default initialization value is a new instance of
-  # `FlexHash`.
-  #
-  # Mappings are only needed when the default initialization of `FlexHash` is incorrect.  For example,
-  # if a particular index key were to be used to collect information in an _array_, then a mapping for
-  # that key name or a regexp matching its string name would be needed.
-  #
-  # For example, if it were desired to have any keys with the string `list` in the name be automatically
-  # mapped to an array, then the mapping would be:
-  #
-  #     /list/ => []
-  #
-  # @return [Hash, nil] hash of mappings, possibly empty or nil.
+  include SeenMixin
+
   attr_accessor :mapping
 
   # set the instance name (for reporting)
   attr_writer :name
 
   class << self
-
     def [](*values)
       new.replace(Hash[*values])
     end
@@ -274,8 +287,17 @@ class FlexHash < Hash
     @default_set = true
   end
 
-  alias __key__? key?
-  alias __include__? include?
+  # aliases to the original Hash methods (before we override them)
+  alias __key__?         key?
+  alias __include__?     include?
+  alias __store__        store
+  alias __fetch__        fetch
+  alias __fetch_values__ fetch_values
+  alias __delete__       delete
+  alias __replace__      replace
+  alias __merge__        merge
+  alias __update__       update
+  alias __values_at__    values_at
 
   # given a key, which can be scalar or an array, return true if the keys exist in the index
   def key?(*key_list)
@@ -295,20 +317,19 @@ class FlexHash < Hash
   # given one or more keys, each of which can be a scalar or array index,
   # return the corresponding key, value pairs.
   def slice(*keys)
-    FlexHash[keys.map { |key| [key, fetch(key)]} ]
+    FlexHash[keys.map { |key| [key, fetch(key)] }]
   end
 
-  # index the FlexHash object by `key_list`, a scalar key, or an array of keys.  New indexes
-  # are automatically associated with new FlexHash instances, unless the FlexHash instance was
-  # created with the `default` attribute assigned to nil, or something else.
+  # index the FlexHash object by `key_list`, a scalar key, or an array of keys.
+  # New indexes are automatically associated with new FlexHash instances,
+  # unless the FlexHash instance was created with the `default` attribute
+  # assigned to nil, or something else.
+  #
   # @param [String, Integer, Array] key_list one or more keys used as an index on the FlexHash instance.
   # @return [value, FlexHash] the value associated with the given index(es), or a newly initialized FlexHash instance.
   def [](*key_list)
     fetch_or_init_keys(Array(key_list).flatten) { |key| new_collection(key) }
   end
-
-  # alias __fetch to the superclass instance fetch
-  alias __fetch__ fetch
 
   # The original `Hash.fetch` call signature includes an optional "default"
   # value, which, if provided overrides the `Hash.default` value.  If the
@@ -328,7 +349,7 @@ class FlexHash < Hash
   #     keys = ['a', 'b']
   #     ah.fetch(keys, '')       # => { 'a' => { 'b' => '' } }
   #
-  # This is all managed by the code below.
+  # This is managed by the code below.
   def fetch(key_list, given_default = omitted = true)
     fetch_or_init_keys(Array(key_list).flatten) do |key|
       if omitted
@@ -338,8 +359,6 @@ class FlexHash < Hash
       end
     end
   end
-
-  alias __fetch_values__ fetch_values
 
   # fetch the values at the given keys, where each key can be a scalar (as with
   # normal hash), or an array of keys.
@@ -366,8 +385,6 @@ class FlexHash < Hash
     store_with_init(Array(key_list).flatten, value)
   end
 
-  alias __store__ store
-
   # @param [Array, scalar] key_list one or more keys to be indexed on the FlexHash instance
   # @param [value] value an arbitrary value to be assigned
   # Indexes into the `FlexHash` instance with succeeding elements of `key_list`, storing the
@@ -376,8 +393,6 @@ class FlexHash < Hash
     store_with_init(Array(key_list).flatten, value)
   end
 
-  alias __delete__ delete
-
   # deletes the item indexed by the one or more keys in `key_list`.
   def delete(*key_list)
     first_keys, last_key = split_keys(key_list)
@@ -385,23 +400,17 @@ class FlexHash < Hash
     data.__delete__(last_key) if data.__key__?(last_key)
   end
 
-  alias __replace__ replace
-
   # replace the current contents with the `hash`, converting all "normal"
   # hash values into `FlexHash` equivalents.  Multiple keys to the same
   # hash object are handled correctly _(the transform is performed only
   # once per unique hash object)_.
   def replace(hash)
-    self.__replace__(deep_transform_hashes_of(hash))
+    __replace__(deep_transform_hashes_of(hash))
   end
-
-  alias __merge__ merge
 
   def merge(hash)
-    self.__merge__(deep_transform_hashes_of(hash))
+    __merge__(deep_transform_hashes_of(hash))
   end
-
-  alias __update__ update
 
   # updates the content by successively merging the given hashes, and then converting
   # any nested Hash objects to FlexHash objects.
@@ -411,23 +420,87 @@ class FlexHash < Hash
     self
   end
 
-  def deep_transform_values
-    # TODO
+  # applies `transform_values` across all values, recursing on Hash and Array values.
+  # Correctly detects loops when values have already been visited in the recursion by
+  # tracking visited objects in a temporary @seen instance hash
+
+  def deep_transform_values(depth = 0, &block)
+    transform_values do |value|
+      recursive_deep_transform_value(value, :deep_transform_values, depth + 1, &block)
+    end.tap { reset_seen(depth) }
   end
 
-  def deep_transform_values!
-    # TODO
+  def deep_transform_values!(depth = 0, &block)
+    transform_values! do |value|
+      recursive_deep_transform_value(value, :deep_transform_values!, depth + 1, &block)
+    end.tap { reset_seen(depth) }
   end
 
   def deep_transform_keys
-    # TODO
+    recursive_deep_transform_keys(FlexHash.new)
   end
 
   def deep_transform_keys!
-    # TODO
+    recursive_deep_transform_keys(self)
   end
 
-  alias __values_at__ values_at
+  private
+
+  def recursive_deep_transform_value(value, func, depth, &block)
+    case value
+    when Hash, Array
+      value.seen? ? value : value.seen!.send(func, depth, &block)
+    else
+      yield(value)
+    end
+  end
+
+  def recursive_deep_transform_keys(hash, depth = 0)
+    deep_transform(hash, depth) do |key, value|
+      [yield(key), value]
+    end
+  end
+
+  public
+
+  # transform each key and/or value.
+  #
+  # hash.deep_transform { |key, value| ... [new_key, new_value] }
+  #
+  # returns a new FlexHash with key, value pair resulting from each iteration of the block.
+  #
+  # hash.deep_transform(result_hash) { |key, value| ... [new_key, new_value] }
+  #
+  # returns the `result_hash` updated by the key,value pairs from the block iterations.
+
+  def deep_transform(result_hash = {}, &block)
+    deep_transform_depth(result_hash, 0, &block)
+  end
+
+  private
+
+  def deep_transform_depth(result_hash, depth, &block)
+    each_with_object(result_hash) do |(key, value), hash|
+      new_key, new_value = recursive_deep_transform(hash, key, value, depth, &block)
+      hash.store(new_key, new_value)
+      hash.delete(key) if key != new_key && hash.key?(key)
+    end.tap { reset_seen(depth) }
+  end
+
+  def recursive_deep_transform(hash, key, value, depth, &block)
+    case value
+    when Hash, Array
+      if value.seen?
+        [key, value]
+      else
+        value.seen!.deep_transform_depth(hash, key, value, depth + 1, &block)
+      end
+    else
+      yield(key, value)
+    end
+  end
+
+  public
 
   # returns the array of values corresponding to the array of keys, each of which may
   # be a scalar or array index, the latter of which performs nested indexing _(via `[]`)_.
